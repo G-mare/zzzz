@@ -1,9 +1,13 @@
 import random
 
-def generate_number():
-    """生成一个由0-9中不重复的4个数字组成的字符串"""
-    digits = random.sample(range(10), 4)
-    return ''.join(map(str, digits))
+def generate_number(difficulty):
+    """根据难度生成数字"""
+    if difficulty == "极难":
+        # 允许重复数字
+        return ''.join(str(random.randint(0, 9)) for _ in range(4))
+    else:
+        # 不重复数字
+        return ''.join(map(str, random.sample(range(10), 4)))
 
 def get_hint(secret, guess, advanced=False):
     """根据猜测返回提示信息"""
@@ -45,43 +49,115 @@ def get_hint(secret, guess, advanced=False):
         # 基础提示
         return f"{correct_positions}个数字位置正确，{correct_digits}个数字正确"
 
-def play_game():
+def play_game(difficulty):
     """主游戏函数"""
-    secret_number = generate_number()
+    secret_number = generate_number(difficulty)
     attempts = 0
+    max_attempts = {
+        "简单": float('inf'),
+        "普通": 16,
+        "困难": 8,
+        "极难": 32
+    }[difficulty]
     
-    print("游戏开始！请猜一个由0-9中不重复的4个数字组成的数字。")
+    print(f"\n游戏开始！难度：{difficulty}")
+    print("请猜一个由0-9组成的4位数字" + ("（数字可能重复）" if difficulty == "极难" else "（数字不重复）"))
     
     while True:
-        guess = input("请输入你的猜测（4位数字）：").strip()
+        guess = input(f"\n请输入你的猜测（4位数字，剩余尝试次数：{max_attempts - attempts if max_attempts != float('inf') else '无限'}）：").strip()
+        
+        # 检查是否是命令
+        if guess.startswith('/'):
+            if guess.lower() in ['/exit', '/quit']:
+                confirm = input(f"确定要退出吗？正确答案是：{secret_number}（Y/N）").strip().upper()
+                if confirm == 'Y':
+                    print("游戏结束，谢谢游玩！")
+                    return False
+                else:
+                    continue
+            elif guess.lower() == '/home':
+                print("返回主菜单...")
+                return True
+            elif guess.lower() == '/answer':
+                print(f"正确答案是：{secret_number}")
+                play_again = input("再来一局吗？（Y/N）").strip().upper()
+                return play_again == 'Y'
+            elif guess.lower() == '/hint':
+                print("高级提示：" + get_hint(secret_number, "    ", advanced=True))
+                continue
+            else:
+                print("未知命令，可用命令：/hint, /home, /exit, /quit, /answer")
+                continue
+        
         attempts += 1
         
         # 验证输入
-        if len(guess) != 4 or not guess.isdigit() or len(set(guess)) != 4:
+        if len(guess) != 4 or not guess.isdigit():
+            print("请输入4位数字！")
+            attempts -= 1
+            continue
+        
+        if difficulty != "极难" and len(set(guess)) != 4:
             print("请输入4个不重复的数字！")
             attempts -= 1
             continue
         
         if guess == secret_number:
             print(f"恭喜你猜对了，一共用了{attempts}次")
-            break
+            play_again = input("再来一局吗？（Y/N）").strip().upper()
+            return play_again == 'Y'
         
-        # 根据尝试次数决定提示级别
-        if attempts > 10:
+        # 检查是否超过最大尝试次数
+        if attempts >= max_attempts:
+            print(f"很遗憾，你没有在{max_attempts}次内猜出正确答案：{secret_number}")
+            play_again = input("再来一局吗？（Y/N）").strip().upper()
+            return play_again == 'Y'
+        
+        # 根据难度决定提示级别
+        if difficulty == "简单":
             hint = get_hint(secret_number, guess, advanced=True)
             print(f"程序提示（高级）：{hint}")
-        else:
+        elif difficulty == "普通":
+            if attempts > 8:
+                hint = get_hint(secret_number, guess, advanced=True)
+                print(f"程序提示（高级）：{hint}")
+            else:
+                hint = get_hint(secret_number, guess, advanced=False)
+                print(f"程序提示（基础）：{hint}")
+        else:  # 困难和极难模式
             hint = get_hint(secret_number, guess, advanced=False)
             print(f"程序提示（基础）：{hint}")
+
+def select_difficulty():
+    """选择难度"""
+    print("\n请选择游戏难度：")
+    print("1. 简单 - 不限次数，始终提供高级提示")
+    print("2. 普通 - 16次限制，8次后提供高级提示")
+    print("3. 困难 - 8次限制，仅基础提示（可输入/hint获取高级提示）")
+    print("4. 极难 - 32次限制，数字可重复，仅基础提示（可输入/hint获取高级提示）")
+    
+    while True:
+        choice = input("请输入难度编号(1-4)：").strip()
+        if choice in ['1', '2', '3', '4']:
+            return ["简单", "普通", "困难", "极难"][int(choice)-1]
+        print("无效输入，请输入1-4的数字")
 
 def main():
     """主程序"""
     print("欢迎来到数字猜谜游戏！")
+    print("游戏过程中可以输入以下命令：")
+    print("/hint - 获取高级提示")
+    print("/home - 返回主菜单")
+    print("/exit或/quit - 退出游戏")
+    print("/answer - 显示答案并询问是否再来一局")
     
     while True:
-        play_game()
-        play_again = input("再来一局吗？（Y/N）").strip().upper()
-        if play_again != 'Y':
+        difficulty = select_difficulty()
+        while play_game(difficulty):
+            pass  # 继续游戏
+        
+        # 询问是否完全退出
+        if input("\n是否完全退出游戏？（Y/N）").strip().upper() == 'Y':
             print("游戏结束，谢谢游玩！")
             break
 
