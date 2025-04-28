@@ -10,42 +10,51 @@ def generate_number(difficulty):
         # 不重复数字
         return ''.join(map(str, random.sample(range(10), 4)))
 
-def get_hint(secret, guess, advanced=False):
+def get_hint(secret, guess, advanced=False, hint_style="default"):
     """根据猜测返回提示信息"""
     correct_positions = sum(s == g for s, g in zip(secret, guess))
     correct_digits = sum(min(secret.count(d), guess.count(d)) for d in set(guess))
-    correct_digits_only = correct_digits - correct_positions
     
     if advanced:
-        # 高级提示
-        position_info = []
-        digit_info = []
-        
-        # 检查每个位置
-        for i, (s, g) in enumerate(zip(secret, guess)):
-            if s == g:
-                position_info.append(f"第{i+1}位数字位置正确")
-        
-        # 检查数字是否正确但位置不对
-        secret_counts = {}
-        guess_counts = {}
-        for d in set(guess):
-            secret_counts[d] = secret.count(d)
-            guess_counts[d] = guess.count(d)
-        
-        for d in set(guess):
-            if secret_counts.get(d, 0) > 0 and d not in [secret[i] for i in range(4) if secret[i] == guess[i]]:
-                digit_info.append(f"数字{d}正确")
-        
-        # 构建高级提示信息
-        if not position_info and not digit_info:
-            return "没有数字位置正确，没有数字正确"
-        elif not position_info and digit_info:
-            return f"没有数字位置正确，{', '.join(digit_info)}"
-        elif position_info and not digit_info:
-            return f"{', '.join(position_info)}，没有其他数字正确"
+        if hint_style == "default":
+            # 默认高级提示
+            position_info = []
+            digit_info = []
+            
+            # 检查每个位置
+            for i, (s, g) in enumerate(zip(secret, guess)):
+                if s == g:
+                    position_info.append(f"第{i+1}位数字位置正确")
+            
+            # 检查数字是否正确但位置不对
+            secret_counts = {}
+            guess_counts = {}
+            for d in set(guess):
+                secret_counts[d] = secret.count(d)
+                guess_counts[d] = guess.count(d)
+            
+            for d in set(guess):
+                if secret_counts.get(d, 0) > 0 and d not in [secret[i] for i in range(4) if secret[i] == guess[i]]:
+                    digit_info.append(f"数字{d}正确")
+            
+            # 构建高级提示信息
+            if not position_info and not digit_info:
+                return "没有数字位置正确，没有数字正确"
+            elif not position_info and digit_info:
+                return f"没有数字位置正确，{', '.join(digit_info)}"
+            elif position_info and not digit_info:
+                return f"{', '.join(position_info)}，没有其他数字正确"
+            else:
+                return f"{', '.join(position_info)}，{', '.join(digit_info)}"
         else:
-            return f"{', '.join(position_info)}，{', '.join(digit_info)}"
+            # 新格式高级提示
+            correct_pos_digits = [g for s, g in zip(secret, guess) if s == g]
+            existing_digits = list(set([d for d in guess if d in secret]))
+            
+            pos_info = f"数字{', '.join(correct_pos_digits)}位置正确" if correct_pos_digits else "没有数字位置正确"
+            exist_info = f"数字{', '.join(existing_digits)}存在" if existing_digits else "没有数字存在"
+            
+            return f"{pos_info}，{exist_info}"
     else:
         # 基础提示
         return f"{correct_positions}个数字位置正确，{correct_digits}个数字正确"
@@ -53,7 +62,7 @@ def get_hint(secret, guess, advanced=False):
 def show_help():
     """显示帮助信息"""
     print("\n可用命令：")
-    print("/hint - 基于上次猜测获取高级提示")
+    print("/hint - 基于上次猜测获取高级提示（新格式）")
     print("/home - 返回主菜单（难度选择页面）")
     print("/exit或/quit - 显示答案并退出游戏")
     print("/answer - 显示答案并询问是否再来一局")
@@ -85,7 +94,8 @@ def show_rules(difficulty):
     
     print("\n提示说明：")
     print("- 基础提示：显示数字位置正确数量和数字正确数量")
-    print("- 高级提示：显示具体哪些位置正确，哪些数字正确但位置不对")
+    print("- 高级提示：显示具体哪些数字位置正确，哪些数字存在")
+    print("- 使用/hint命令可获得更清晰的高级提示")
 
 def play_game(difficulty):
     """主游戏函数"""
@@ -124,7 +134,7 @@ def play_game(difficulty):
                     return play_again == 'Y'
                 elif guess.lower() == '/hint':
                     if last_guess:
-                        print("\n高级提示：" + get_hint(secret_number, last_guess, advanced=True))
+                        print("\n高级提示：" + get_hint(secret_number, last_guess, advanced=True, hint_style="new"))
                     else:
                         print("\n请先进行一次猜测后再使用此命令")
                     continue
@@ -212,9 +222,9 @@ def main():
 2. 你需要猜测这个数字是什么
 3. 每次猜测后会得到提示：
    - 基础提示：显示数字位置正确数量和数字正确数量
-   - 高级提示：显示具体哪些位置正确，哪些数字正确但位置不对
+   - 高级提示：显示具体哪些数字位置正确，哪些数字存在
 4. 不同难度有不同的尝试次数限制和提示规则
-5. 游戏过程中可以输入各种命令获取帮助或控制游戏
+5. 使用/hint命令可获得更清晰的高级提示格式
 
 输入 /help 可以查看所有可用命令
 """)
