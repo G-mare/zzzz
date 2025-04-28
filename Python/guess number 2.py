@@ -62,10 +62,10 @@ def get_hint(secret, guess, advanced=False, hint_style="default"):
 def show_help():
     """显示帮助信息"""
     print("\n可用命令：")
-    print("/hint - 基于上次猜测获取高级提示（新格式）")
-    print("/home - 返回主菜单（难度选择页面）")
+    print("/hint - 基于上次猜测获取高级提示")
+    print("/home - 返回主菜单")
     print("/exit或/quit - 显示答案并退出游戏")
-    print("/answer - 显示答案并询问是否再来一局")
+    print("/answer - 显示答案")
     print("/help - 显示此帮助信息")
     print("/ra - 显示剩余尝试次数")
     print("/restart - 以当前难度重新开始游戏")
@@ -115,8 +115,8 @@ def play_game(difficulty):
         print("输入 /help 查看可用命令")
         
         while True:
-            remaining = max_attempts - attempts if max_attempts != float('inf') else '无限'
-            prompt = f"\n请输入你的猜测（4位数字" + (f"，剩余尝试次数：{remaining}" if remaining != '无限' and remaining <= 3 else "") + "）："
+            remaining = max_attempts - attempts if max_attempts != float('inf') else '∞'
+            prompt = f"\n请输入你的猜测（4位数字" + (f"，剩余尝试次数：{remaining}" if remaining != '∞' and remaining <= 3 else "") + "）："
             guess = input(prompt).strip()
             
             # 检查是否是命令
@@ -131,7 +131,10 @@ def play_game(difficulty):
                 elif guess.lower() == '/answer':
                     print(f"\n本局正确答案是：{secret_number}")
                     play_again = input("再来一局吗？（Y/N）").strip().upper()
-                    return play_again == 'Y'
+                    if play_again == 'Y':
+                        return True
+                    else:
+                        return False
                 elif guess.lower() == '/hint':
                     if last_guess:
                         print("\n高级提示：" + get_hint(secret_number, last_guess, advanced=True, hint_style="new"))
@@ -205,12 +208,16 @@ def select_difficulty():
     print("2. 普通 - 16次限制，8次后提供高级提示")
     print("3. 困难 - 8次限制，仅基础提示（可输入/hint获取高级提示）")
     print("4. 极难 - 32次限制，数字可重复，仅基础提示（可输入/hint获取高级提示）")
+    print("0. 退出游戏")
     
     while True:
-        choice = input("请输入难度编号(1-4)：").strip()
-        if choice in ['1', '2', '3', '4']:
+        choice = input("请输入编号(0-4)：").strip()
+        if choice == '0':
+            print("\n游戏结束，谢谢游玩！")
+            exit()
+        elif choice in ['1', '2', '3', '4']:
             return ["简单", "普通", "困难", "极难"][int(choice)-1]
-        print("无效输入，请输入1-4的数字")
+        print("无效输入，请输入0-4的数字")
 
 def main():
     """主程序"""
