@@ -38,18 +38,19 @@ def game_settings(current_settings):
         else:
             try:
                 if '-' in range_input:
-                    # 自动处理正反顺序
-                    parts = sorted(map(int, range_input.split('-')))
-                    min_val, max_val = parts[0], parts[1]
+                    parts = list(map(int, range_input.replace(' ', '').split('-')))
+                    min_val, max_val = sorted(parts)
                 else:
-                    # 只输入一个数字时设置为1-m
                     m = int(range_input)
-                    min_val, max_val = (1, m) if m > 1 else (m, m)  # 处理m=1的情况
+                    if m == 1:
+                        min_val = max_val = 1
+                    else:
+                        min_val, max_val = (1, m) if m > 1 else (0, m)
             except:
                 print("⚠ 输入格式错误，请使用数字格式（如'10-100'或'50'）")
                 continue
         
-        # 自动交换大小值
+        # 自动排序确保范围有效
         min_val, max_val = sorted((min_val, max_val))
         
         # 唯一数字验证
@@ -62,9 +63,10 @@ def game_settings(current_settings):
             if confirm != 'y':
                 continue
         
-        # 保存有效设置
+        # 保存并显示新设置
         current_settings['min_range'] = min_val
         current_settings['max_range'] = max_val
+        print(f"✅ 游戏范围已更新为 {min_val}-{max_val}！")
         break
     
     # 动态提示设置
@@ -78,13 +80,20 @@ def game_settings(current_settings):
 def play_game(settings):
     min_val = settings['min_range']
     max_val = settings['max_range']
-    secret_number = random.randint(min_val, max_val) if min_val != max_val else min_val
+    
+    # 处理唯一数字情况
+    if min_val == max_val:
+        print(f"\n⚠ 注意：数字已确定为 {min_val}")
+        input("按回车键提交答案...")  # 戏剧性暂停
+        print(f"🎉 恭喜你！猜对了！你总共猜了 1 次。")
+        return
+    
+    # 正常游戏流程
+    secret_number = random.randint(min_val, max_val)
     guess_count = 0
     current_min, current_max = min_val, max_val
     
-    print(f"\n游戏开始！" + 
-          (f"数字已确定为 {secret_number}" if min_val == max_val 
-           else f"我已经想好了一个{min_val}到{max_val}之间的数字。"))
+    print(f"\n✅ 游戏开始！我已经想好了一个{min_val}到{max_val}之间的数字。")
     
     while True:
         hint_range = f"（{current_min}-{current_max}）" if settings['dynamic_hint'] else f"（{min_val}-{max_val}）"
