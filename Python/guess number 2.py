@@ -127,14 +127,11 @@ def play_game(difficulty):
                     exit()
                 elif guess.lower() == '/home':
                     print("\n返回主菜单...")
-                    return True
+                    return 'home'
                 elif guess.lower() == '/answer':
                     print(f"\n本局正确答案是：{secret_number}")
                     play_again = input("再来一局吗？（Y/N）").strip().upper()
-                    if play_again == 'Y':
-                        return True
-                    else:
-                        return False
+                    return 'restart' if play_again == 'Y' else 'exit'  # 修改返回值
                 elif guess.lower() == '/hint':
                     if last_guess:
                         print("\n高级提示：" + get_hint(secret_number, last_guess, advanced=True, hint_style="new"))
@@ -238,13 +235,24 @@ def main():
     
     while True:
         difficulty = select_difficulty()
-        while play_game(difficulty):
-            pass  # 继续游戏
-        
-        # 询问是否完全退出
-        if input("\n是否完全退出游戏？（Y/N）").strip().upper() == 'Y':
-            print("\n游戏结束，谢谢游玩！")
+        if difficulty is None:  # 处理退出选项
             break
+        
+        while True:
+            result = play_game(difficulty)
+            
+            if result == 'home':  # 处理/home命令
+                break
+            
+            if result == 'exit':  # 处理完全退出
+                print("\n游戏结束，谢谢游玩！")
+                return
+            
+            # 处理/answer的重新开始
+            if result == 'restart':
+                continue  # 继续当前难度循环
+            else:
+                break  # 其他情况返回主菜单
 
 if __name__ == "__main__":
     main()
