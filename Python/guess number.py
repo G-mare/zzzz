@@ -35,24 +35,42 @@ def game_settings(current_settings):
     
     # 设置数字范围
     while True:
-        try:
-            min_val = int(input(f"请输入最小值 (当前: {current_settings['min_range']}): ") or current_settings['min_range'])
-            max_val = int(input(f"请输入最大值 (当前: {current_settings['max_range']}): ") or current_settings['max_range'])
-            
-            if min_val < 0 or max_val < 0:
-                print("请输入非负整数！")
-            elif min_val > max_val:
-                print("最大值必须大于或等于最小值！")
-            elif max_val - min_val < 7:
-                confirm = input("警告：数字范围过小，游戏会非常简单！是否继续？(y/n): ").lower()
-                if confirm != 'y':
-                    continue
-            else:
-                current_settings['min_range'] = min_val
-                current_settings['max_range'] = max_val
-                break
-        except ValueError:
-            print("请输入有效的数字！")
+        range_input = input(f"请输入数字范围(格式: 最小值-最大值, 当前: {current_settings['min_range']}-{current_settings['max_range']}): ").strip()
+        
+        # 如果直接回车则保持当前设置
+        if range_input == '':
+            min_val = current_settings['min_range']
+            max_val = current_settings['max_range']
+        else:
+            # 尝试解析范围格式
+            try:
+                if '-' in range_input:
+                    parts = range_input.split('-')
+                    if len(parts) != 2:
+                        raise ValueError
+                    min_val = int(parts[0].strip())
+                    max_val = int(parts[1].strip())
+                else:
+                    # 如果只输入一个数字，则作为最大值，最小值为0
+                    min_val = 0
+                    max_val = int(range_input.strip())
+            except ValueError:
+                print("请输入有效的范围格式，如 '10-100' 或 '50'")
+                continue
+        
+        # 验证范围
+        if min_val < 0 or max_val < 0:
+            print("请输入非负整数！")
+        elif min_val > max_val:
+            print("最大值必须大于或等于最小值！")
+        elif max_val - min_val < 7:
+            confirm = input("警告：数字范围过小，游戏会非常简单！是否继续？(y/n): ").lower()
+            if confirm != 'y':
+                continue
+        else:
+            current_settings['min_range'] = min_val
+            current_settings['max_range'] = max_val
+            break
     
     # 设置动态提示
     dynamic = input(f"启用动态范围提示? (当前: {'启用' if current_settings['dynamic_hint'] else '禁用'}) (y/n): ").lower()
