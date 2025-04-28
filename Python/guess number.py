@@ -63,8 +63,8 @@ def game_settings(current_settings):
             print("请输入非负整数！")
         elif min_val > max_val:
             print("最大值必须大于或等于最小值！")
-        elif max_val - min_val < 7:
-            confirm = input("警告：数字范围过小，游戏会非常简单！是否继续？(y/n): ").lower()
+        elif max_val - min_val < 7 and min_val != max_val:  # 只有当范围不是单一数字时才提示
+            confirm = input("⚠ 数字范围较小，游戏难度较低！是否继续？(y/n): ").lower()
             if confirm != 'y':
                 continue
         else:
@@ -82,14 +82,20 @@ def game_settings(current_settings):
 def play_game(settings):
     min_val = settings['min_range']
     max_val = settings['max_range']
-    secret_number = random.randint(min_val, max_val)
+    
+    # 特殊处理：当最小值和最大值相同时，直接使用该值
+    if min_val == max_val:
+        secret_number = min_val
+        print(f"\n游戏开始！数字已经确定为 {secret_number}。")
+    else:
+        secret_number = random.randint(min_val, max_val)
+        print(f"\n游戏开始！我已经想好了一个{min_val}到{max_val}之间的数字。")
+    
     guess_count = 0
     
     # 动态提示范围
     current_min = min_val
     current_max = max_val
-    
-    print(f"\n游戏开始！我已经想好了一个{min_val}到{max_val}之间的数字。")
     
     while True:
         # 根据设置显示不同的提示
