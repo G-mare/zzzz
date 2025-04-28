@@ -63,7 +63,7 @@ def show_help():
     """显示帮助信息"""
     print("\n可用命令：")
     print("/hint - 基于上次猜测获取高级提示")
-    print("/home - 返回主菜单")
+    print("/menu - 返回主菜单")
     print("/exit或/quit - 显示答案并退出游戏")
     print("/answer - 显示答案")
     print("/help - 显示此帮助信息")
@@ -125,9 +125,9 @@ def play_game(difficulty):
                     print(f"\n本局正确答案是：{secret_number}")
                     print("游戏结束，谢谢游玩！")
                     exit()
-                elif guess.lower() == '/home':
+                elif guess.lower() == '/menu':
                     print("\n返回主菜单...")
-                    return 'home'
+                    return 'menu'
                 elif guess.lower() == '/answer':
                     print(f"\n本局正确答案是：{secret_number}")
                     play_again = input("再来一局吗？（Y/N）").strip().upper()
@@ -241,7 +241,7 @@ def main():
         while True:
             result = play_game(difficulty)
             
-            if result == 'home':  # 处理/home命令
+            if result == 'menu':  # 处理/menu命令
                 break
             
             if result == 'exit':  # 处理完全退出
