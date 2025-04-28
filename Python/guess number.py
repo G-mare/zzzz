@@ -5,7 +5,7 @@ def main():
     settings = {
         'min_range': 1,
         'max_range': 100,
-        'dynamic_hint': True
+        'dynamic_hint': False  # 默认禁用动态提示
     }
     
     while True:
@@ -14,7 +14,11 @@ def main():
         print("2. 游戏设置")
         print("0. 退出游戏")
         
-        choice = input("请选择: ")
+        choice = input("请选择(直接回车开始游戏): ").strip()
+        
+        # 直接回车则开始游戏
+        if choice == '':
+            choice = '1'
         
         if choice == '1':
             play_game(settings)
@@ -35,10 +39,14 @@ def game_settings(current_settings):
             min_val = int(input(f"请输入最小值 (当前: {current_settings['min_range']}): ") or current_settings['min_range'])
             max_val = int(input(f"请输入最大值 (当前: {current_settings['max_range']}): ") or current_settings['max_range'])
             
-            if min_val <= 0 or max_val <= 0:
-                print("请输入正整数！")
-            elif min_val >= max_val:
-                print("最大值必须大于最小值！")
+            if min_val < 0 or max_val < 0:
+                print("请输入非负整数！")
+            elif min_val > max_val:
+                print("最大值必须大于或等于最小值！")
+            elif max_val - min_val < 7:
+                confirm = input("警告：数字范围过小，游戏会非常简单！是否继续？(y/n): ").lower()
+                if confirm != 'y':
+                    continue
             else:
                 current_settings['min_range'] = min_val
                 current_settings['max_range'] = max_val
@@ -47,9 +55,7 @@ def game_settings(current_settings):
             print("请输入有效的数字！")
     
     # 设置动态提示
-    dynamic = input("启用动态范围提示? (y/n, 当前: {}) ".format(
-        "是" if current_settings['dynamic_hint'] else "否"
-    )).lower()
+    dynamic = input(f"启用动态范围提示? (当前: {'启用' if current_settings['dynamic_hint'] else '禁用'}) (y/n): ").lower()
     current_settings['dynamic_hint'] = dynamic == 'y'
     
     print("设置已保存！")
@@ -69,7 +75,7 @@ def play_game(settings):
     
     while True:
         # 根据设置显示不同的提示
-        if settings['dynamic_hint'] and current_min != min_val or current_max != max_val:
+        if settings['dynamic_hint'] and (current_min != min_val or current_max != max_val):
             hint = f"({current_min}-{current_max})"
         else:
             hint = f"({min_val}-{max_val})"
@@ -79,8 +85,8 @@ def play_game(settings):
         # 验证输入
         try:
             guess = int(guess_input)
-            if guess <= 0:
-                print("请输入正整数！")
+            if guess < 0:
+                print("请输入非负整数！")
                 continue
         except ValueError:
             print("请输入有效的数字！")
